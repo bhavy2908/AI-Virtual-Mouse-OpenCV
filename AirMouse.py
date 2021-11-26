@@ -19,12 +19,14 @@ class handDetector():
     def findHands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
+        if handDetector.noOfHands(self) == 1:
 
-        if self.results.multi_hand_landmarks:
-            for handLms in self.results.multi_hand_landmarks:
-                if draw:
-                    self.mpDraw.draw_landmarks(img, handLms,
-                                               self.mpHands.HAND_CONNECTIONS)
+
+            if self.results.multi_hand_landmarks:
+                for handLms in self.results.multi_hand_landmarks:
+                    if draw:
+                        self.mpDraw.draw_landmarks(img, handLms,
+                                                   self.mpHands.HAND_CONNECTIONS)
         return img
 
     def findPosition(self, img, handNo=0):
@@ -36,6 +38,10 @@ class handDetector():
                 cx, cy = lm.x, lm.y
                 lmList.append([id, cx, cy])
         return lmList
+    def noOfHands(self):
+        if self.results.multi_hand_landmarks:
+            return len(self.results.multi_hand_landmarks)
+        return 0
 
 
 def main():
@@ -48,9 +54,16 @@ def main():
         success, img = cap.read()
         img = detector.findHands(img)
         lmList = detector.findPosition(img)
-        if len(lmList) != 0:
-            pyautogui.moveTo(ScreenX*lmList[8][1], ScreenY*lmList[8][2])
-
+        if detector.noOfHands() == 1:
+            if len(lmList) != 0:
+                x, y = pyautogui.size()
+                pyautogui.moveTo(x - ScreenX*lmList[8][1], ScreenY*lmList[8][2])
+                if lmList[12][2] < lmList[7][2]:
+                    pyautogui.mouseDown()
+                else:
+                    pyautogui.mouseUp()
+        else:
+            hello = 1
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
